@@ -11,21 +11,22 @@
           v-if="showNewAnnouncement" 
           :courses="courses" 
           @closebox="toggleShowNewAnnouncement()"
-          :content="aBoxContent"
+          :content="currAnnouncement"
           >
         </AnnouncementsBox>
-        <a v-if="!showNewAnnouncement" 
+        <button v-if="!showNewAnnouncement" 
           foreditor="#new_Announcement" 
-          v-on:click="toggleShowNewAnnouncement()" 
-          class="edit addNewListEditorItem allAnnouncements"
-          id="addNewAnnouncement">
+          v-on:click.prevent="toggleShowNewAnnouncement()" 
+          id="addNewAnnouncement"
+          >
           New Announcement
-        </a>
+        </button>
         <ul style="list-style-type:none">
           <li is="AnnouncementItem" 
             v-for="a in announcements" 
             v-bind:key="a.id" 
-            v-bind:announcement="a"
+            v-bind:content="a"
+            :instructorName="instructorName"
             @edit="edit"></li>
         </ul>
       </section>
@@ -41,13 +42,11 @@ define([
   "Vue",
   "underscore",
   "vue!app/views/controls/AnnouncementItem",
-  "vue!app/views/controls/AnnouncementNew",
   "vue!app/views/controls/AnnouncementsBox"
-], function(Vue, _, AnnouncementItem, AnnouncementNew, AnnouncementsBox) {
+], function(Vue, _, AnnouncementItem, AnnouncementsBox) {
   return {
     components: {
       AnnouncementItem,
-      AnnouncementNew,
       AnnouncementsBox
     },
     data: function() {
@@ -57,23 +56,44 @@ define([
         aBoxContent: {},
         announcements: [],
         courses: [],
-        showNewAnnouncement: false
+        showNewAnnouncement: false,
+
+        currAnnouncement: this.getNewAnnouncement(),
+        instructorName: ""
       };
     },
     methods: {
       edit: function(content) {
-        this.aBoxContent = content;
+        content.title = "Edit Announcement";
+        this.currAnnouncement = content;
+        this.showNewAnnouncement = true;
       },
       toggleShowNewAnnouncement: function() {
         this.showNewAnnouncement = !this.showNewAnnouncement;
+        this.currAnnouncement = this.getNewAnnouncement();
       },
       closeBox: function() {},
 
       setAnnouncements: function(announcements) {
-        this.announcements = announcements;
+
+        //this.announcements = announcements;
+        for(var i=0; i<announcements.length; i++) {
+          var blankAnnouncement = this.getNewAnnouncement();
+          blankAnnouncement.subject = announcements[i].title;
+          blankAnnouncement.content = announcements[i].text;
+          if(announcements[i].expirationDate != null) {
+            blankAnnouncement.hasExp = true;
+            blankAnnouncement.expDate = announcements[i].expirationDate;
+            
+          }
+          blankAnnouncement.availableDate = this.formatDate(
+              new Date(announcements[i].availableDate));
+          this.announcements.push(blankAnnouncement);
+        }
       },
       setInstructorName: function(name) {
-        for (var i = 0; i < this.announcements.length; i++) {
+        this.instructorName = name;
+        /*for (var i = 0; i < this.announcements.length; i++) {
           var a = this.announcements[i];
           a.instructorName = name;
           var d = new Date(a.availableDate);
@@ -81,7 +101,7 @@ define([
           this.announcements[i].availableDate = this.formatDate(d);
 
           this.announcements[i] = a;
-        }
+        }*/
       },
       setCourses: function(courses) {
         for(var i=0; i<courses.length; i+=2) {
@@ -91,6 +111,20 @@ define([
           });
         }
         console.log(this.courses);
+      },
+
+      getNewAnnouncement() {
+        return {
+          title: "New Announcement",
+          courses: [],
+          subject: "",
+          content: "",
+          hasExp: false,
+          expDate: "",
+          expTime: "",
+          availableDate: ""
+          
+        };
       },
 
       formatDate: function(dateObj) {

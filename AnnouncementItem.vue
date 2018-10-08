@@ -1,36 +1,27 @@
 <template>
     <li>
-    <table>
-        <tbody>
-            <tr>
-                <td width="70%">
-                    <h3>
-                        <div>{{ announcement.title }}</div>   
-                    </h3>
-                        
-                    <div>
-                        <p v-html="announcement.text"></p>
-                    </div>
-                </td>
+        <div>
+            <h3>{{ content.subject }}</h3>
+            <p v-html="content.content"></p>
+        </div>
 
-                <td class="info" width="20%">
-                    <p class="instructor"><strong>{{ announcement.instructorName }}</strong></p>
-                    <p>{{ announcement.availableDate }}</p>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+        <div>
+            <p><strong>{{ instructorName }}</strong></p>
+            <p>{{ content.availableDate }}</p>
+        </div>
 
-    <a @click="$emit('edit', announcement)">Edit</a>
-    <a>Copy</a>
-    <a>Recycle</a>
+        <div>
+            <a @click="$emit('edit', content)">Edit</a>
+            <a>Copy</a>
+            <a>Recycle</a>
+        </div>
     </li>
 </template>
 
 <script>
     define(['Vue', 'underscore'], function(Vue, _) {
         return {
-            props: ['announcement', 'edit'],
+            props: ['content', 'edit', 'instructorName'],
         }
     });
 </script>

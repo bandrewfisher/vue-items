@@ -1,6 +1,6 @@
 <template>
     <div class="abox">
-        <h2>New Announcement</h2>
+        <h2>{{ content.title }}</h2>
         <button @click.prevent="$emit('closebox')">Close</button>
 
         <div id="coursesCheckboxDiv">
@@ -15,12 +15,12 @@
 
         <div class="subjectDiv">
             <label class="aboxRequired" for="subjectInput" >Subject</label>
-            <input type="text" id="subjectInput" @keyup.prevent v-model="aboxSubject">
+            <input type="text" id="subjectInput" @keyup.prevent v-model="content.subject">
         </div>  
 
         <div class="messageDiv">
             <label class="aboxRequired" for="messageTextArea">Message</label>
-            <textarea id="messageTextArea" v-model="aboxMessage"></textarea>            
+            <textarea id="messageTextArea" v-model="content.content"></textarea>            
         </div>
 
         <div class="expireCheckboxDiv">
@@ -51,7 +51,7 @@
         <div>
             <button class="announcementBoxFooter" @click.prevent="publishAnnouncement()">Publish Announcement</button>
             <button class="announcementBoxFooter" @click.prevent>Save as draft</button>
-            <button class="announcementBoxFooter" @click.prevent>Cancel</button>
+            <button class="announcementBoxFooter" @click.prevent="$emit('closebox')">Cancel</button>
         </div>
     </div>
 </template>
@@ -78,7 +78,8 @@ define([], function() {
         selDate: "",        //Selected date of expiration
         selHour: "11",      //Selected hour of expiration
         selMinute: ":59",   //Selected minute of expiration
-        title: "New Announcement"   //Title of the announcement box
+        title: "New Announcement",   //Title of the announcement box
+
       }
     },
     mounted: function() {

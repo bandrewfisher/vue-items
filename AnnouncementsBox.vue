@@ -24,15 +24,15 @@
         </div>
 
         <div class="expireCheckboxDiv">
-            <input type="checkbox" v-model="hasExpiration">
+            <input type="checkbox" v-model="content.hasExp">
             <label for="expireDatePicker" >Expire On:</label>
             <input id="expireDatePicker" @click="hasExpiration=true" type="date" v-model="selDate"> at
-            <select id="expirationHourSelect" v-model="selHour">
+            <select id="expirationHourSelect" v-model="content.expHour">
                 <option v-for="hour in hours"
                 :value="hour" :key="hour">{{ hour }} </option>
             </select>
 
-            <select id="expirationMinuteSelect" v-model="selMinute">
+            <select id="expirationMinuteSelect" v-model="content.expMinute">
                 <option v-for="minute in minutes"
                 :value="minute" :key="minute">{{ minute }} </option>
             </select>
@@ -57,7 +57,7 @@
 </template>
 
 <script>
-define([], function() {
+define(["app/views/controls/vueDate"], function(vueDate) {
   return {
     props: {
         closebox: Object,
@@ -76,7 +76,7 @@ define([], function() {
         minutes: [],        //Initialized to 1-60 for minute of expiration <select>
         selAmPm: "pm",      //Expiration <select> for am or pm
         selDate: "",        //Selected date of expiration
-        selHour: "11",      //Selected hour of expiration
+        selHour: this.setSelHour(),      //Selected hour of expiration
         selMinute: ":59",   //Selected minute of expiration
         title: "New Announcement",   //Title of the announcement box
 
@@ -85,10 +85,10 @@ define([], function() {
     mounted: function() {
         $(".aboxRequired").append("<span style='color:red'>*</span>");   
         for(var i=1; i<=12; i++) {
-            this.hours.push(zeroPad(2, i.toString()));
+            this.hours.push(vueDate.zeroPad(2, i.toString()));
         }
         for(var i=0; i<60; i++) {
-            this.minutes.push(":" + zeroPad(2, i.toString()));
+            this.minutes.push(":" + vueDate.zeroPad(2, i.toString()));
         }
 
     },
@@ -117,7 +117,7 @@ define([], function() {
             
             if(this.hasExpiration) {
                 try {   
-                    validateExpDate(this.selDate, this.selHour, this.selMinute, this.selAmPm);
+                    vueDate.validateExpDate(this.selDate, this.selHour, this.selMinute, this.selAmPm);
                 } catch (err) {
                     this.errors.push(err);
                 }
@@ -133,104 +133,30 @@ define([], function() {
                 //TODO publish the announcement
             }
 
-        } 
+        },
+        
+        setSelHour: function() {
+            if(this.content.expDate != null) {
+                var selDateStr = vueDate.getDateHour(this.content.expDate).toString();
+                return vueDate.zeroPad(2, selDateStr);
+            }
+            else {
+                return "11";
+            }
+        },
+
+        setSelMinute: function() {
+            if(this.content.expDate != null) {
+                var selDateStr = vueDate.getDateMinute(this.content.expDate).toString();
+                return ":" + vueDate.zeroPad(2, selDateStr);
+            } else {
+                return ":59";
+            }
+        }
     }
   };
 });
 
-function validateExpDate(userDateStr, selHour, selMin, selAmPm) {
-    var dateVars = userDateStr.split("-");
-    var userDate = new Date(parseInt(dateVars[0]), parseInt(dateVars[1])-1,
-        parseInt(dateVars[2]));
-    console.log("date object");
-    console.log(userDate);
-    var today = new Date();
-    var hour = parseInt(selHour);
-    var minute = parseInt(selMin.substring(1));     //Take the colon off the beginning of the minute field
-    //Turn the hour in 24 hour format
-    if(hour == 12) {
-        if(selAmPm == "am") {
-            hour = 0;
-        }
-    } else {
-        if(selAmPm == "pm") {
-            hour += 12;
-        }        
-    }
-
-    userDate.setHours(hour);
-    userDate.setMinutes(minute);
-    userDate.setSeconds(0);
-
-    var error = "The expiration date must be after the current instant.";
-    var cmp = compareDateDay(userDate, today);
-    if(cmp == -1) {     //Selected day before today.
-        throw error;
-    } else if(cmp == 0) {   //Selected day is today.
-        cmp = compareTime(userDate.getHours(), userDate.getMinutes(), userDate.getSeconds(),
-            today.getHours(), today.getMinutes(), today.getSeconds());
-        if(cmp == -1) {
-            throw error;
-        }
-    }
-}
-
-function compareTime(hour1, minute1, second1, hour2, minute2, second2) {
-    var cmp = 0;
-    if(hour1 < hour2) {
-        cmp = -1;
-    } else if (hour1 > hour2) {
-        cmp = 1;
-    } else {
-        if(minute1 < minute2) {
-            cmp = -1;
-        } else if(minute1 > minute2) {
-            cmp = 1;
-        } else {
-            if(second1 < second2) {
-                cmp = -1;
-            } else if(second1 > second2) {
-                cmp = 1;
-            }
-        }
-    }
-    return cmp;
-}
-
-//Compare two dates to see if they are the same calendar day (ignore the time in Date object)
-//Parameters: 2 date objects
-//Returns: -1 if date1 is before date2, 0 if they are the same day, and 1 if date1 is after date2
-function compareDateDay(date1, date2) {
-    var cmp = 0;
-    if(date1.getFullYear() < date2.getFullYear()) {
-        cmp = -1;
-    } else if(date1.getFullYear() > date2.getFullYear()) {
-        cmp = 1;
-    } else {
-        if(date1.getMonth() < date2.getMonth()) {
-            cmp = -1;
-        } else if (date1.getMonth() > date2.getMonth()) {
-            cmp = 1;
-        } else {
-            if(date1.getDate() < date2.getDate()) {
-                cmp = -1;
-            } else if(date1.getDate() > date2.getDate()) {
-                cmp = 1;
-            }
-        }
-    }
-    return cmp;
-
-}
-
-function zeroPad(width, string) {
-    var numZeros = width - string.length;
-    var zeros = "";
-    for(var i=0; i < numZeros; i++) {
-        zeros += "0";
-    }
-    return zeros + string;
-}
 </script>
 
 <style scoped>

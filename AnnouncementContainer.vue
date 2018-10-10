@@ -23,9 +23,9 @@
         </button>
         <ul style="list-style-type:none">
           <li is="AnnouncementItem" 
-            v-for="a in announcements" 
+            v-for="a in newAnnouncements" 
             v-bind:key="a.id" 
-            v-bind:content="a"
+            v-bind:content ="a"
             :instructorName="instructorName"
             @edit="edit"></li>
         </ul>
@@ -42,8 +42,9 @@ define([
   "Vue",
   "underscore",
   "vue!app/views/controls/AnnouncementItem",
-  "vue!app/views/controls/AnnouncementsBox"
-], function(Vue, _, AnnouncementItem, AnnouncementsBox) {
+  "vue!app/views/controls/AnnouncementsBox",
+  "app/views/controls/vueDate"
+], function(Vue, _, AnnouncementItem, AnnouncementsBox, vueDate) {
   return {
     components: {
       AnnouncementItem,
@@ -59,7 +60,9 @@ define([
         showNewAnnouncement: false,
 
         currAnnouncement: this.getNewAnnouncement(),
-        instructorName: ""
+        instructorName: "",
+
+        newAnnouncements: []        
       };
     },
     methods: {
@@ -75,7 +78,6 @@ define([
       closeBox: function() {},
 
       setAnnouncements: function(announcements) {
-
         //this.announcements = announcements;
         for(var i=0; i<announcements.length; i++) {
           var blankAnnouncement = this.getNewAnnouncement();
@@ -83,25 +85,36 @@ define([
           blankAnnouncement.content = announcements[i].text;
           if(announcements[i].expirationDate != null) {
             blankAnnouncement.hasExp = true;
-            blankAnnouncement.expDate = announcements[i].expirationDate;
-            
+            blankAnnouncement.expDate = this.formatDateStr(announcements[i].expirationDate);
+            blankAnnouncement.expHour = vueDate.zeroPad(
+              2, vueDate.getDateHour(blankAnnouncement.expDate).toString());
+            blankAnnouncement.expMinute = ":" + vueDate.zeroPad(
+              2, vueDate.getDateMinute(blankAnnouncement.expDate).toString()
+            );
           }
-          blankAnnouncement.availableDate = this.formatDate(
-              new Date(announcements[i].availableDate));
+          blankAnnouncement.availableDate = this.formatDateStr(
+              announcements[i].availableDate);
           this.announcements.push(blankAnnouncement);
         }
       },
+      setAnnouncementStr: function(announcementStr) {
+        var announcements = announcementStr.announcements;
+        for(var a in announcements) {
+          var newAnn = {};
+          newAnn.id = announcements[a].announcementID;
+          newAnn.content = announcements[a].body;
+          newAnn.subject = announcements[a].title;
+          newAnn.instructorName = announcements[a].name;
+          newAnn.courses = announcements[a].courseString;
+
+          this.newAnnouncements.push(newAnn);
+
+        }  
+            
+
+      },
       setInstructorName: function(name) {
         this.instructorName = name;
-        /*for (var i = 0; i < this.announcements.length; i++) {
-          var a = this.announcements[i];
-          a.instructorName = name;
-          var d = new Date(a.availableDate);
-          console.log(d.toDateString());
-          this.announcements[i].availableDate = this.formatDate(d);
-
-          this.announcements[i] = a;
-        }*/
       },
       setCourses: function(courses) {
         for(var i=0; i<courses.length; i+=2) {
@@ -110,24 +123,26 @@ define([
             name: courses[i+1]
           });
         }
-        console.log(this.courses);
       },
 
-      getNewAnnouncement() {
+      getNewAnnouncement: function() {
         return {
           title: "New Announcement",
           courses: [],
           subject: "",
           content: "",
           hasExp: false,
-          expDate: "",
+          expDate: null,
           expTime: "",
+          expHour: "11",  //Default expiration time is 11:59
+          expMinute: ":59",   //Default expiration time is 11:59
           availableDate: ""
           
         };
       },
 
-      formatDate: function(dateObj) {
+      formatDateStr: function(dateObj) {
+        dateObj = new Date(dateObj);
         var dateStr = "";
         var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         var months = [
@@ -149,7 +164,7 @@ define([
         if (hour > 12) {
           hour = hour - 12;
           amPm = "pm";
-        }
+        } 
         dateStr +=
           days[dateObj.getDay()] +
           ", " +
@@ -159,7 +174,7 @@ define([
           ", " +
           hour +
           ":" +
-          dateObj.getMinutes() +
+          vueDate.zeroPad(2, dateObj.getMinutes().toString()) +
           " " +
           amPm;
 

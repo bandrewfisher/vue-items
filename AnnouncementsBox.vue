@@ -8,7 +8,7 @@
             <div class="inline" v-for="course in courses" id="coursesCheckboxesDiv" :key="course.id">
                 
                 <input type="checkbox" :id="course.id" :value="course.name" 
-                    v-model="checkedCourses">
+                    >
                 <label  :for="course.id">{{ course.name }}</label>               
             </div>       
         </div>
@@ -26,7 +26,7 @@
         <div class="expireCheckboxDiv">
             <input type="checkbox" v-model="content.hasExp">
             <label for="expireDatePicker" >Expire On:</label>
-            <input id="expireDatePicker" @click="hasExpiration=true" type="date" v-model="selDate"> at
+            <input id="expireDatePicker" @click="hasExpiration=true" type="date" > at
             <select id="expirationHourSelect" v-model="content.expHour">
                 <option v-for="hour in hours"
                 :value="hour" :key="hour">{{ hour }} </option>
@@ -37,14 +37,14 @@
                 :value="minute" :key="minute">{{ minute }} </option>
             </select>
 
-            <select id="expirationAmPm" v-model="selAmPm">
+            <select id="expirationAmPm">
                 <option value="am">am</option>
                 <option value="pm">pm</option>
             </select>
         </div>    
 
         <div class="criticalAnnouncementDiv">
-            <input type="checkbox" v-model="isCritical">
+            <input type="checkbox" >
             <label>Critical Announcement: Email everyone on publish</label>
         </div>
 
@@ -78,7 +78,7 @@ define(["app/views/controls/vueDate"], function(vueDate) {
         selDate: "",        //Selected date of expiration
         selHour: this.setSelHour(),      //Selected hour of expiration
         selMinute: ":59",   //Selected minute of expiration
-        title: "New Announcement",   //Title of the announcement box
+        title: "New Announcement"   //Title of the announcement box
 
       }
     },

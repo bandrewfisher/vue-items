@@ -21,14 +21,13 @@
           >
           New Announcement
         </button>
-        <ul style="list-style-type:none">
-          <li is="AnnouncementItem" 
-            v-for="a in newAnnouncements" 
-            v-bind:key="a.id" 
-            v-bind:content ="a"
-            :instructorName="instructorName"
-            @edit="edit"></li>
-        </ul>
+        
+        <AnnouncementItem
+          v-for="a in newAnnouncements" 
+          v-bind:key="a.id" 
+          v-bind:content ="a"
+          :instructorName="instructorName"
+          @edit="edit"></AnnouncementItem>
       </section>
     </form>
 
@@ -55,7 +54,6 @@ define([
         title: "",
         member: 23,
         aBoxContent: {},
-        announcements: [],
         courses: [],
         showNewAnnouncement: false,
 
@@ -77,26 +75,6 @@ define([
       },
       closeBox: function() {},
 
-      setAnnouncements: function(announcements) {
-        //this.announcements = announcements;
-        for(var i=0; i<announcements.length; i++) {
-          var blankAnnouncement = this.getNewAnnouncement();
-          blankAnnouncement.subject = announcements[i].title;
-          blankAnnouncement.content = announcements[i].text;
-          if(announcements[i].expirationDate != null) {
-            blankAnnouncement.hasExp = true;
-            blankAnnouncement.expDate = this.formatDateStr(announcements[i].expirationDate);
-            blankAnnouncement.expHour = vueDate.zeroPad(
-              2, vueDate.getDateHour(blankAnnouncement.expDate).toString());
-            blankAnnouncement.expMinute = ":" + vueDate.zeroPad(
-              2, vueDate.getDateMinute(blankAnnouncement.expDate).toString()
-            );
-          }
-          blankAnnouncement.availableDate = this.formatDateStr(
-              announcements[i].availableDate);
-          this.announcements.push(blankAnnouncement);
-        }
-      },
       setAnnouncementStr: function(announcementStr) {
         var announcements = announcementStr.announcements;
         for(var a in announcements) {
@@ -106,7 +84,14 @@ define([
           newAnn.subject = announcements[a].title;
           newAnn.instructorName = announcements[a].name;
           newAnn.courses = announcements[a].courseString;
-
+          newAnn.availableDate = vueDate.timestampToStr(
+              announcements[a].availableDate
+          );
+          if(announcements[a].expireDate != null) {
+            newAnn.expDate = vueDate.timestampToStr(announcements[a].expireDate);
+          } else {
+            newAnn.expDate = "";
+          }
           this.newAnnouncements.push(newAnn);
 
         }  
